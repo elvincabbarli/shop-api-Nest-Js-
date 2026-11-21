@@ -6,17 +6,31 @@ import { Prisma } from '../generated/prisma/client.js';
 export class ProductsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll() {
-    const products = await this.prisma.products.findMany({
-      orderBy: { id: 'asc' },
-    });
+  async findAll(page: number, limit: number) {
+    const [products, total] = await Promise.all([
+      this.prisma.products.findMany({
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { id: 'asc' },
+      }),
+      this.prisma.products.count(),
+    ]);
 
-    return products.map((product) => ({
-      id: product.id,
-      name: product.name,
-      price: product.price.toNumber(),
-      stock: product.stock,
-    }));
+    return {
+      data: products.map((product) => ({
+        id: product.id,
+        name: product.name,
+        price: product.price.toNumber(),
+        stock: product.stock,
+        categoryId: product.categoryId,
+      })),
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   async count() {
@@ -71,30 +85,54 @@ export class ProductsService {
     };
   }
 
-  async findByMaxPrice(maxPrice: number) {
-    const products = await this.prisma.products.findMany({
-      where: {
-        price: {
-          lte: maxPrice,
-        },
+  async findByMaxPrice(maxPrice: number, page: number, limit: number) {
+    const where = {
+      price: {
+        lte: maxPrice,
       },
-      orderBy: { id: 'asc' },
-    });
+    };
 
-    return products.map((product) => ({
-      id: product.id,
-      name: product.name,
-      price: product.price.toNumber(),
-      stock: product.stock,
-    }));
+    const [products, total] = await Promise.all([
+      this.prisma.products.findMany({
+        where,
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { id: 'asc' },
+      }),
+      this.prisma.products.count({ where }),
+    ]);
+
+    return {
+      data: products.map((product) => ({
+        id: product.id,
+        name: product.name,
+        price: product.price.toNumber(),
+        stock: product.stock,
+        categoryId: product.categoryId,
+      })),
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
-  async create(name: string, price: number, stock: number) {
+  async create(
+    name: string,
+    price: number,
+    stock: number,
+    categoryId?: number,
+  ) {
     const product = await this.prisma.products.create({
       data: {
         name,
         price,
         stock,
+        ...(categoryId === undefined
+          ? {}
+          : { category: { connect: { id: categoryId } } }),
       },
     });
 
@@ -103,6 +141,7 @@ export class ProductsService {
       name: product.name,
       price: product.price.toNumber(),
       stock: product.stock,
+      categoryId: product.categoryId,
     };
   }
 

@@ -73,12 +73,27 @@ export class ProductsController {
   }
 
   @Get()
-  listProducts(@Query('maxPrice') maxPrice?: string) {
-    if (maxPrice === undefined) {
-      return this.productsService.findAll();
+  listProducts(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('maxPrice') maxPrice?: string,
+  ) {
+    const pageNumber = page === undefined ? 1 : Number(page);
+    const pageSize = limit === undefined ? 10 : Number(limit);
+
+    if (!Number.isInteger(pageNumber) || pageNumber < 1) {
+      throw new BadRequestException('page müsbət tam ədəd olmalıdır.');
     }
 
-    if (typeof maxPrice !== 'string' || maxPrice.trim() === '') {
+    if (!Number.isInteger(pageSize) || pageSize < 1 || pageSize > 100) {
+      throw new BadRequestException('limit 1 ilə 100 arasında olmalıdır.');
+    }
+
+    if (maxPrice === undefined) {
+      return this.productsService.findAll(pageNumber, pageSize);
+    }
+
+    if (maxPrice.trim() === '') {
       throw new BadRequestException('maxPrice mənfi olmayan ədəd olmalıdır.');
     }
 
@@ -88,7 +103,11 @@ export class ProductsController {
       throw new BadRequestException('maxPrice mənfi olmayan ədəd olmalıdır.');
     }
 
-    return this.productsService.findByMaxPrice(priceLimit);
+    return this.productsService.findByMaxPrice(
+      priceLimit,
+      pageNumber,
+      pageSize,
+    );
   }
 
   @Post()
@@ -96,6 +115,7 @@ export class ProductsController {
     const name = body?.name;
     const price = body?.price;
     const stock = body?.stock;
+    const categoryId = body?.categoryId;
 
     if (typeof name !== 'string' || name.trim() === '') {
       throw new BadRequestException('Məhsulun adı boş ola bilməz.');
@@ -105,7 +125,7 @@ export class ProductsController {
       throw new BadRequestException('Qiymət mənfi olmayan ədəd olmalıdır.');
     }
 
-    return this.productsService.create(name.trim(), price, stock);
+    return this.productsService.create(name.trim(), price, stock, categoryId);
   }
 
   @Patch(':id')

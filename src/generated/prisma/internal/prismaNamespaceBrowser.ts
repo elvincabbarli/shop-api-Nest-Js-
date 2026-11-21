@@ -51,7 +51,8 @@ export const AnyNull = runtime.AnyNull
 
 
 export const ModelName = {
-  products: 'products'
+  products: 'products',
+  Category: 'Category'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -74,10 +75,19 @@ export const ProductsScalarFieldEnum = {
   id: 'id',
   name: 'name',
   price: 'price',
-  stock: 'stock'
+  stock: 'stock',
+  categoryId: 'categoryId'
 } as const
 
 export type ProductsScalarFieldEnum = (typeof ProductsScalarFieldEnum)[keyof typeof ProductsScalarFieldEnum]
+
+
+export const CategoryScalarFieldEnum = {
+  id: 'id',
+  name: 'name'
+} as const
+
+export type CategoryScalarFieldEnum = (typeof CategoryScalarFieldEnum)[keyof typeof CategoryScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -94,4 +104,12 @@ export const QueryMode = {
 } as const
 
 export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
+
+
+export const NullsOrder = {
+  first: 'first',
+  last: 'last'
+} as const
+
+export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
 

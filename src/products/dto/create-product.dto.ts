@@ -1,4 +1,11 @@
-import { IsInt, IsNumber, IsString, Matches, Min } from 'class-validator';
+import {
+  IsInt,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Matches,
+  Min,
+} from 'class-validator';
 
 export class CreateProductDto {
   @IsString()
@@ -12,4 +19,9 @@ export class CreateProductDto {
   @IsInt()
   @Min(0, { message: 'Stok sayı mənfi olmayan tam ədəd olmalıdır.' })
   stock!: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1, { message: 'Kateqoriya ID-si müsbət tam ədəd olmalıdır.' })
+  categoryId?: number;
 }

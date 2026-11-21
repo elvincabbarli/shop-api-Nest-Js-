@@ -8,8 +8,16 @@ datasource db {
 }
 
 model products {
-  id    Int     @id(map: "PK_0806c755e0aca124e67c0cf6d7d") @default(autoincrement())
-  name  String  @db.VarChar
-  price Decimal @db.Decimal(10, 2)
-  stock Int @default(0)
+  id         Int       @id(map: "PK_0806c755e0aca124e67c0cf6d7d") @default(autoincrement())
+  name       String    @db.VarChar
+  price      Decimal   @db.Decimal(10, 2)
+  stock      Int       @default(0)
+  categoryId Int?
+  category   Category? @relation(fields: [categoryId], references: [id])
+}
+
+model Category {
+  id       Int        @id @default(autoincrement())
+  name     String     @unique @db.VarChar
+  products products[]
 }
