@@ -77,9 +77,11 @@ export class ProductsController {
     @Query('page') page?: string,
     @Query('limit') limit?: string,
     @Query('maxPrice') maxPrice?: string,
+    @Query('search') search?: string,
   ) {
     const pageNumber = page === undefined ? 1 : Number(page);
     const pageSize = limit === undefined ? 10 : Number(limit);
+    const searchTerm = search?.trim();
 
     if (!Number.isInteger(pageNumber) || pageNumber < 1) {
       throw new BadRequestException('page müsbət tam ədəd olmalıdır.');
@@ -90,7 +92,7 @@ export class ProductsController {
     }
 
     if (maxPrice === undefined) {
-      return this.productsService.findAll(pageNumber, pageSize);
+      return this.productsService.findAll(pageNumber, pageSize, searchTerm);
     }
 
     if (maxPrice.trim() === '') {
@@ -107,6 +109,7 @@ export class ProductsController {
       priceLimit,
       pageNumber,
       pageSize,
+      searchTerm,
     );
   }
 

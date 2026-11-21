@@ -6,14 +6,24 @@ import { Prisma } from '../generated/prisma/client.js';
 export class ProductsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll(page: number, limit: number) {
+  async findAll(page: number, limit: number, search?: string) {
+    const where: Prisma.productsWhereInput = {};
+
+    if (search) {
+      where.name = {
+        contains: search,
+        mode: 'insensitive',
+      };
+    }
+
     const [products, total] = await Promise.all([
       this.prisma.products.findMany({
+        where,
         skip: (page - 1) * limit,
         take: limit,
         orderBy: { id: 'asc' },
       }),
-      this.prisma.products.count(),
+      this.prisma.products.count({ where }),
     ]);
 
     return {
@@ -22,7 +32,6 @@ export class ProductsService {
         name: product.name,
         price: product.price.toNumber(),
         stock: product.stock,
-        categoryId: product.categoryId,
       })),
       meta: {
         page,
@@ -85,39 +94,48 @@ export class ProductsService {
     };
   }
 
-  async findByMaxPrice(maxPrice: number, page: number, limit: number) {
-    const where = {
-      price: {
-        lte: maxPrice,
-      },
-    };
+async findByMaxPrice(
+  maxPrice: number,
+  page: number,
+  limit: number,
+  search?: string,
+) {
+  const where: Prisma.productsWhereInput = {
+    price: { lte: maxPrice },
+  };
 
-    const [products, total] = await Promise.all([
-      this.prisma.products.findMany({
-        where,
-        skip: (page - 1) * limit,
-        take: limit,
-        orderBy: { id: 'asc' },
-      }),
-      this.prisma.products.count({ where }),
-    ]);
-
-    return {
-      data: products.map((product) => ({
-        id: product.id,
-        name: product.name,
-        price: product.price.toNumber(),
-        stock: product.stock,
-        categoryId: product.categoryId,
-      })),
-      meta: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
+  if (search) {
+    where.name = {
+      contains: search,
+      mode: 'insensitive',
     };
   }
+
+  const [products, total] = await Promise.all([
+    this.prisma.products.findMany({
+      where,
+      skip: (page - 1) * limit,
+      take: limit,
+      orderBy: { id: 'asc' },
+    }),
+    this.prisma.products.count({ where }),
+  ]);
+
+  return {
+    data: products.map((product) => ({
+      id: product.id,
+      name: product.name,
+      price: product.price.toNumber(),
+      stock: product.stock,
+    })),
+    meta: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
+}
 
   async create(
     name: string,
