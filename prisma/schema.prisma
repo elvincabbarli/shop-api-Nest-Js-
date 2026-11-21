@@ -1,0 +1,15 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model products {
+  id    Int     @id(map: "PK_0806c755e0aca124e67c0cf6d7d") @default(autoincrement())
+  name  String  @db.VarChar
+  price Decimal @db.Decimal(10, 2)
+  stock Int @default(0)
+}
